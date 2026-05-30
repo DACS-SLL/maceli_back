@@ -3,20 +3,21 @@ package handlers
 import (
 	"net/http"
 
+	"maceli-backend/internal/storage"
+
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type UploadHandler struct {
-	db *gorm.DB
+	imageUploader storage.ImageUploader
 }
 
-func NewUploadHandler(db *gorm.DB) *UploadHandler {
-	return &UploadHandler{db: db}
+func NewUploadHandler(imageUploader storage.ImageUploader) *UploadHandler {
+	return &UploadHandler{imageUploader: imageUploader}
 }
 
 func (h *UploadHandler) UploadImage(c *gin.Context) {
-	imagenURL, saved, status, message := saveUploadedImage(c)
+	imagenURL, saved, status, message := saveUploadedImage(c, h.imageUploader)
 	if !saved {
 		if message == "" {
 			message = "Debes enviar una imagen en el campo imagen"

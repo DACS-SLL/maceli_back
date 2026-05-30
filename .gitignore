@@ -13,6 +13,7 @@ dist/
 
 # Local uploads
 uploads/
+database/
 
 # Go workspace/cache files sometimes created locally
 .gocache/

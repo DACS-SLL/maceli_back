@@ -8,17 +8,22 @@ import (
 	"strings"
 
 	"maceli-backend/internal/models"
+	"maceli-backend/internal/storage"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type PlanHandler struct {
-	db *gorm.DB
+	db            *gorm.DB
+	imageUploader storage.ImageUploader
 }
 
-func NewPlanHandler(db *gorm.DB) *PlanHandler {
-	return &PlanHandler{db: db}
+func NewPlanHandler(db *gorm.DB, imageUploader storage.ImageUploader) *PlanHandler {
+	return &PlanHandler{
+		db:            db,
+		imageUploader: imageUploader,
+	}
 }
 
 type planRequest struct {
@@ -215,7 +220,7 @@ func (h *PlanHandler) createWithMultipart(c *gin.Context) {
 	}
 
 	imagenURL := strings.TrimSpace(firstMultipartValue(form, "imagen_url"))
-	if uploadedURL, saved, status, message := saveUploadedImage(c); saved {
+	if uploadedURL, saved, status, message := saveUploadedImage(c, h.imageUploader); saved {
 		imagenURL = uploadedURL
 	} else if message != "" {
 		c.JSON(status, gin.H{"error": message})
@@ -285,7 +290,7 @@ func (h *PlanHandler) applyMultipartPlanUpdate(c *gin.Context, plan *models.Plan
 		plan.Activo = activo
 	}
 
-	if uploadedURL, saved, status, message := saveUploadedImage(c); saved {
+	if uploadedURL, saved, status, message := saveUploadedImage(c, h.imageUploader); saved {
 		plan.ImagenURL = uploadedURL
 	} else if message != "" {
 		c.JSON(status, gin.H{"error": message})

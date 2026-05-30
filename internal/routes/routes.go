@@ -1,12 +1,14 @@
 package routes
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"maceli-backend/internal/config"
 	"maceli-backend/internal/handlers"
 	"maceli-backend/internal/middleware"
+	"maceli-backend/internal/storage"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -28,10 +30,12 @@ func SetupRouter(db *gorm.DB, cfg config.Config) *gin.Engine {
 
 	router.Static("/uploads", "./uploads")
 
-	planHandler := handlers.NewPlanHandler(db)
+	imageUploader := buildImageUploader(cfg)
+
+	planHandler := handlers.NewPlanHandler(db, imageUploader)
 	pedidoHandler := handlers.NewPedidoHandler(db)
 	contactoHandler := handlers.NewContactoHandler(db)
-	uploadHandler := handlers.NewUploadHandler(db)
+	uploadHandler := handlers.NewUploadHandler(imageUploader)
 
 	api := router.Group("/api")
 	api.GET("/health", func(c *gin.Context) {
@@ -63,4 +67,24 @@ func SetupRouter(db *gorm.DB, cfg config.Config) *gin.Engine {
 	}
 
 	return router
+}
+
+func buildImageUploader(cfg config.Config) storage.ImageUploader {
+	if cfg.CloudinaryCloudName != "" && cfg.CloudinaryAPIKey != "" && cfg.CloudinaryAPISecret != "" {
+		uploader, err := storage.NewCloudinaryUploader(
+			cfg.CloudinaryCloudName,
+			cfg.CloudinaryAPIKey,
+			cfg.CloudinaryAPISecret,
+			cfg.CloudinaryUploadPath,
+		)
+		if err == nil {
+			log.Println("Subida de imagenes configurada con Cloudinary")
+			return uploader
+		}
+
+		log.Printf("No se pudo configurar Cloudinary, se usara almacenamiento local: %v", err)
+	}
+
+	log.Println("Subida de imagenes configurada en almacenamiento local")
+	return storage.NewLocalUploader("uploads", "/uploads")
 }

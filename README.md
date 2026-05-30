@@ -18,6 +18,7 @@ El proyecto esta pensado como un MVP claro. Usa una arquitectura simple por capa
 - Gin
 - GORM
 - PostgreSQL, compatible con NeonDB usando `DATABASE_URL`
+- Cloudinary para imagenes en produccion
 - godotenv
 - gin-contrib/cors
 
@@ -44,6 +45,10 @@ PORT=8080
 DATABASE_URL=postgres://usuario:password@localhost:5432/maceli_db?sslmode=disable
 FRONTEND_URL=http://localhost:5173
 ADMIN_KEY=maceli_admin_123
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+CLOUDINARY_UPLOAD_PATH=maceli/planes
 ```
 ## Ejecutar el backend
 
@@ -76,6 +81,26 @@ X-ADMIN-KEY: maceli_admin_123
 ```
 
 El valor real debe coincidir con la variable `ADMIN_KEY` del archivo `.env`.
+
+## Imagenes con Cloudinary
+
+En produccion se recomienda usar Cloudinary para no depender del disco del servidor. Configura estas variables:
+
+```env
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=tu_api_key
+CLOUDINARY_API_SECRET=tu_api_secret
+CLOUDINARY_UPLOAD_PATH=maceli/planes
+```
+
+El backend funciona asi:
+
+1. El admin envia un archivo en `multipart/form-data` con el campo `imagen`.
+2. El backend sube la imagen a Cloudinary.
+3. Cloudinary devuelve una URL segura `https://res.cloudinary.com/...`.
+4. El backend guarda esa URL en `planes.imagen_url`.
+
+Si las variables de Cloudinary no existen, el backend usa almacenamiento local en `/uploads` para desarrollo.
 
 ## Endpoints
 
@@ -183,11 +208,20 @@ Respuesta:
 ```json
 {
   "message": "Imagen subida correctamente",
-  "imagen_url": "/uploads/1760000000000000000.png"
+  "imagen_url": "https://res.cloudinary.com/tu-cloud/image/upload/v0000000000/maceli/planes/imagen.jpg"
 }
 ```
 
 Este endpoint queda disponible si quieres subir una imagen por separado, pero para planes ya no es necesario hacerlo manualmente: `POST /api/admin/planes` y `PUT /api/admin/planes/:id` aceptan el campo `imagen` y guardan `imagen_url` automaticamente.
+
+En desarrollo, si no hay credenciales de Cloudinary, la respuesta sera una URL local como:
+
+```json
+{
+  "message": "Imagen subida correctamente",
+  "imagen_url": "/uploads/1760000000000000000.png"
+}
+```
 
 ### Pedidos
 
@@ -281,6 +315,24 @@ Error:
 6. Lista planes publicos con `GET {{base_url}}/planes`.
 7. Registra un pedido con `POST {{base_url}}/pedidos`.
 8. Revisa pedidos con `GET {{base_url}}/admin/pedidos`.
+
+## Cargar planes desde SQL
+
+Se incluye un seed SQL con la data tomada de las piezas visuales de MACELI:
+
+```text
+database/seed_planes_maceli.sql
+```
+
+Puedes ejecutarlo desde DataGrip, pgAdmin o la consola de Neon. Antes, asegúrate de iniciar el backend al menos una vez para que GORM cree la tabla `planes`.
+
+Las imagenes referenciadas por el SQL usan URLs locales como:
+
+```text
+/uploads/plan-fit-maceli.jpeg
+```
+
+En local ya puedes colocar esos archivos dentro de `backend/uploads`. Para produccion con Cloudinary, sube las imagenes por `POST /api/admin/upload` o al crear/editar planes con `multipart/form-data`, y luego reemplaza `imagen_url` por las URLs de Cloudinary si usaste el SQL local.
 
 ## Notas del MVP
 

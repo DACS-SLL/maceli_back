@@ -2,17 +2,17 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
-	"time"
+
+	"maceli-backend/internal/storage"
 
 	"github.com/gin-gonic/gin"
 )
 
-func saveUploadedImage(c *gin.Context) (string, bool, int, string) {
+func saveUploadedImage(c *gin.Context, imageUploader storage.ImageUploader) (string, bool, int, string) {
 	file, err := c.FormFile("imagen")
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
@@ -27,18 +27,19 @@ func saveUploadedImage(c *gin.Context) (string, bool, int, string) {
 		return "", false, http.StatusBadRequest, "La imagen debe ser JPG, PNG o WEBP"
 	}
 
-	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
-		return "", false, http.StatusInternalServerError, "No se pudo preparar la carpeta de imagenes"
+	openedFile, err := file.Open()
+	if err != nil {
+		return "", false, http.StatusBadRequest, "No se pudo abrir la imagen enviada"
 	}
+	defer openedFile.Close()
 
-	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
-	destination := filepath.Join("uploads", filename)
-
-	if err := c.SaveUploadedFile(file, destination); err != nil {
+	imagenURL, err := imageUploader.Upload(c.Request.Context(), openedFile, file.Filename)
+	if err != nil {
+		log.Printf("error subiendo imagen: %v", err)
 		return "", false, http.StatusInternalServerError, "No se pudo guardar la imagen"
 	}
 
-	return "/uploads/" + filename, true, http.StatusCreated, ""
+	return imagenURL, true, http.StatusCreated, ""
 }
 
 func isAllowedImageExtension(ext string) bool {
