@@ -1,0 +1,28 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Go build output
+bin/
+build/
+dist/
+*.exe
+*.test
+*.out
+
+# Local uploads
+uploads/
+
+# Go workspace/cache files sometimes created locally
+.gocache/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
