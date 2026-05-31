@@ -20,7 +20,7 @@ func SetupRouter(db *gorm.DB, cfg config.Config) *gin.Engine {
 	router.MaxMultipartMemory = 8 << 20
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{cfg.FrontendURL},
+		AllowOrigins:     cfg.FrontendURLs,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-ADMIN-KEY"},
 		ExposeHeaders:    []string{"Content-Length"},
