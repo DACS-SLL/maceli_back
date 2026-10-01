@@ -11,7 +11,9 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
-      - key: ADMIN_KEY
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
@@ -20,4 +22,10 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
       - key: CLOUDINARY_UPLOAD_PATH
-        value: maceli/planes
+        value: maceli/site
+      - key: GO_VERSION
+        value: 1.27.1
+      - key: APP_ENV
+        value: production
+      - key: TRUSTED_PROXIES
+        sync: false

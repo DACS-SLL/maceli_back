@@ -13,7 +13,10 @@ type Config struct {
 	DatabaseURL          string
 	FrontendURL          string
 	FrontendURLs         []string
-	AdminKey             string
+	AdminEmail           string
+	AdminPassword        string
+	TrustedProxies       []string
+	Production           bool
 	CloudinaryCloudName  string
 	CloudinaryAPIKey     string
 	CloudinaryAPISecret  string
@@ -32,11 +35,14 @@ func Load() Config {
 		DatabaseURL:          getEnv("DATABASE_URL", "postgres://usuario:password@localhost:5432/maceli_db?sslmode=disable"),
 		FrontendURL:          frontendURL,
 		FrontendURLs:         splitEnvList(frontendURL),
-		AdminKey:             getEnv("ADMIN_KEY", "maceli_admin_123"),
+		AdminEmail:           getEnv("ADMIN_EMAIL", ""),
+		AdminPassword:        getEnv("ADMIN_PASSWORD", ""),
+		TrustedProxies:       splitEnvList(getEnv("TRUSTED_PROXIES", "")),
+		Production:           getEnv("RENDER", "") == "true" || getEnv("APP_ENV", "") == "production",
 		CloudinaryCloudName:  getEnv("CLOUDINARY_CLOUD_NAME", ""),
 		CloudinaryAPIKey:     getEnv("CLOUDINARY_API_KEY", ""),
 		CloudinaryAPISecret:  getEnv("CLOUDINARY_API_SECRET", ""),
-		CloudinaryUploadPath: getEnv("CLOUDINARY_UPLOAD_PATH", "maceli/planes"),
+		CloudinaryUploadPath: getEnv("CLOUDINARY_UPLOAD_PATH", "maceli/site"),
 	}
 }
 

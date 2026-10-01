@@ -54,7 +54,7 @@ func (h *PedidoHandler) Create(c *gin.Context) {
 	}
 
 	var plan models.Plan
-	if err := h.db.Where("id = ? AND activo = ?", req.PlanID, true).First(&plan).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Where("id = ? AND activo = ?", req.PlanID, true).First(&plan).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "No se encontro el plan solicitado"})
 			return
@@ -73,7 +73,7 @@ func (h *PedidoHandler) Create(c *gin.Context) {
 		Estado:        models.EstadoPendiente,
 	}
 
-	if err := h.db.Create(&pedido).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Create(&pedido).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo registrar el pedido"})
 		return
 	}
@@ -87,7 +87,7 @@ func (h *PedidoHandler) Create(c *gin.Context) {
 
 func (h *PedidoHandler) ListAdmin(c *gin.Context) {
 	var pedidos []models.Pedido
-	if err := h.db.Preload("Plan").Order("created_at DESC").Find(&pedidos).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Preload("Plan").Order("created_at DESC").Find(&pedidos).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudieron listar los pedidos"})
 		return
 	}
@@ -109,7 +109,7 @@ func (h *PedidoHandler) UpdateEstado(c *gin.Context) {
 	}
 
 	var pedido models.Pedido
-	if err := h.db.Preload("Plan").First(&pedido, c.Param("id")).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Preload("Plan").First(&pedido, c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "No se encontro el pedido solicitado"})
 			return
@@ -120,7 +120,7 @@ func (h *PedidoHandler) UpdateEstado(c *gin.Context) {
 	}
 
 	pedido.Estado = req.Estado
-	if err := h.db.Save(&pedido).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Save(&pedido).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo actualizar el estado del pedido"})
 		return
 	}

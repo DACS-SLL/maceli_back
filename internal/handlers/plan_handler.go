@@ -46,7 +46,7 @@ type updatePlanRequest struct {
 
 func (h *PlanHandler) ListPublic(c *gin.Context) {
 	var planes []models.Plan
-	if err := h.db.Where("activo = ?", true).Order("id ASC").Find(&planes).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Where("activo = ?", true).Order("id ASC").Find(&planes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudieron listar los planes"})
 		return
 	}
@@ -56,7 +56,7 @@ func (h *PlanHandler) ListPublic(c *gin.Context) {
 
 func (h *PlanHandler) GetPublic(c *gin.Context) {
 	var plan models.Plan
-	if err := h.db.Where("id = ? AND activo = ?", c.Param("id"), true).First(&plan).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Where("id = ? AND activo = ?", c.Param("id"), true).First(&plan).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "No se encontro el plan solicitado"})
 			return
@@ -71,7 +71,7 @@ func (h *PlanHandler) GetPublic(c *gin.Context) {
 
 func (h *PlanHandler) ListAdmin(c *gin.Context) {
 	var planes []models.Plan
-	if err := h.db.Order("id ASC").Find(&planes).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Order("id ASC").Find(&planes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudieron listar los planes"})
 		return
 	}
@@ -115,7 +115,7 @@ func (h *PlanHandler) Create(c *gin.Context) {
 		Activo:      activo,
 	}
 
-	if err := h.db.Create(&plan).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Create(&plan).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo crear el plan"})
 		return
 	}
@@ -128,7 +128,7 @@ func (h *PlanHandler) Create(c *gin.Context) {
 
 func (h *PlanHandler) Update(c *gin.Context) {
 	var plan models.Plan
-	if err := h.db.First(&plan, c.Param("id")).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).First(&plan, c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "No se encontro el plan solicitado"})
 			return
@@ -179,7 +179,7 @@ func (h *PlanHandler) Update(c *gin.Context) {
 		}
 	}
 
-	if err := h.db.Save(&plan).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Save(&plan).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo actualizar el plan"})
 		return
 	}
@@ -236,7 +236,7 @@ func (h *PlanHandler) createWithMultipart(c *gin.Context) {
 		Activo:      activo,
 	}
 
-	if err := h.db.Create(&plan).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Create(&plan).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo crear el plan"})
 		return
 	}
@@ -302,7 +302,7 @@ func (h *PlanHandler) applyMultipartPlanUpdate(c *gin.Context, plan *models.Plan
 
 func (h *PlanHandler) Deactivate(c *gin.Context) {
 	var plan models.Plan
-	if err := h.db.First(&plan, c.Param("id")).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).First(&plan, c.Param("id")).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "No se encontro el plan solicitado"})
 			return
@@ -313,7 +313,7 @@ func (h *PlanHandler) Deactivate(c *gin.Context) {
 	}
 
 	plan.Activo = false
-	if err := h.db.Save(&plan).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Save(&plan).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo desactivar el plan"})
 		return
 	}

@@ -44,7 +44,7 @@ func (h *ContactoHandler) Create(c *gin.Context) {
 		Mensaje:  strings.TrimSpace(req.Mensaje),
 	}
 
-	if err := h.db.Create(&contacto).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Create(&contacto).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo registrar el mensaje de contacto"})
 		return
 	}
@@ -57,7 +57,7 @@ func (h *ContactoHandler) Create(c *gin.Context) {
 
 func (h *ContactoHandler) ListAdmin(c *gin.Context) {
 	var contactos []models.Contacto
-	if err := h.db.Order("created_at DESC").Find(&contactos).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Order("created_at DESC").Find(&contactos).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudieron listar los mensajes de contacto"})
 		return
 	}

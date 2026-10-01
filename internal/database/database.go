@@ -16,6 +16,10 @@ func Migrate(db *gorm.DB) error {
 		&models.Plan{},
 		&models.Pedido{},
 		&models.Contacto{},
+		&models.AdminUser{},
+		&models.AdminSession{},
+		&models.SiteState{},
+		&models.MediaAsset{},
 	)
 }
 
